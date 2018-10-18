@@ -7,16 +7,20 @@
 . emu-Nexus5-01-game3.cfg
 echo "DEVICE_RESOLUTION=$DEVICE_RESOLUTION"
 
-	function resetApp {
+function log {
+	echo "`date '+%Y-%m-%d %H:%M:%S'` $1"
+}
+
+function resetApp {
 	
 	if [ "${EMULATED_DEVICE}" = "true" ]; then
 		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -port $EMULATOR_PORT &
 		EMULATOR_PID=$!
-		echo "Waiting for the emulator to start..."
+		log "Waiting for the emulator to start..."
 		sleep 15
 	fi
 
-	echo "Restarting the application..."
+	log "Restarting the application..."
 	#chiudo app
 	adb ${DEVICE_OPTS} shell am force-stop com.axa.pocketcoach.prod
 	sleep 10
@@ -53,17 +57,17 @@ echo "DEVICE_RESOLUTION=$DEVICE_RESOLUTION"
 ################ BEGIN
 
 if [ "$1" != "" ]; then
-        echo "Parametro: $1"
+        log "Parametro: $1"
 		DEVICE_OPTS="-s $1"
 else
 	if [ "${EMULATED_DEVICE}" = "true" ]; then
 		DEVICE_OPTS="-s emulator-${EMULATOR_PORT}"
 	else
-        echo "Nessun parametro"
+        log "Nessun parametro"
 		DEVICE_OPTS=""
 	fi
 fi
-echo "DEVICE_OPTS=$DEVICE_OPTS"
+log "DEVICE_OPTS=$DEVICE_OPTS"
 
 resetApp
 
@@ -73,9 +77,9 @@ while true; do
   
   #150,1800 --> se è blu è finito il gioco
   TEST=$(convert screenshot.png -format '%[pixel:p{'${TEST_PIXEL_END_GAME}'}]' info:-)
-  echo $TEST
+  log $TEST
   if [ "${TEST}" = "${TEST_PIXEL_END_GAME_EXPECTED_VALUE}" ]; then
-  	echo "fine gioco"
+  	log "fine gioco"
   	adb ${DEVICE_OPTS} shell input tap ${TAP_FINE_DUELLO_CONTINUA}
   	sleep 3
     
@@ -98,14 +102,14 @@ while true; do
   QUESTION_HASH=$(convert question.png bmp:- | sha1sum)
   if [ -f "kb/question-${QUESTION_HASH}.txt" ]; then
   	COORD=$(cat "kb/question-${QUESTION_HASH}.txt")
-  	echo "Domanda già incontrata. Coordinate risposta esatta: ${COORD}"
+  	log "Domanda già incontrata. Coordinate risposta esatta: ${COORD}"
   fi
   
   if [ "${COORD}" = "none" ]; then
   	#non conosco la domanda, provo la prima
-  	echo "Domanda nuova, clicco la prima risposta..."
+  	log "Domanda nuova, clicco la prima risposta..."
   	Y=$(echo ${PIXEL_CORNER_ANSWER_1} | cut -d\, -f2)
-  	echo "adb ${DEVICE_OPTS} shell input tap ${X_CENTER_ANSWER} ${Y}"
+  	log "adb ${DEVICE_OPTS} shell input tap ${X_CENTER_ANSWER} ${Y}"
   	adb ${DEVICE_OPTS} shell input tap ${X_CENTER_ANSWER} ${Y}
   	
   	sleep 0.3
@@ -117,11 +121,11 @@ while true; do
   	#TODO: alla fine il verde dura di piu
 	FOUND="KO"
   	for Y in ${PIXEL_CORNER_ANSWER_1_Y} ${PIXEL_CORNER_ANSWER_2_Y} ${PIXEL_CORNER_ANSWER_3_Y} ${PIXEL_CORNER_ANSWER_4_Y}; do 
-  		echo "cerco il verde alla coordinata: $Y"
+  		log "cerco il verde alla coordinata: $Y"
   		# uso una domanda qualsiasi come coordinata x tanto sono tutte uguali
   		TEST=$(convert try.png -format '%[pixel:p{'${PIXEL_CORNER_ANSWER_1_X}','${Y}'}]' info:-)
   		if [ ${TEST} = "${CORRECT_ANSWER_COLOR}" ]; then
-  			echo "Trovato alla coordinata Y:$Y"
+  			log "Trovato alla coordinata Y:$Y"
   			echo "${X_CENTER_ANSWER} ${Y}" > "kb/question-${QUESTION_HASH}.txt"
   	 		cp question.png "kb/question-${QUESTION_HASH}.png"
   	 		cp screenshot.png "kb/question-${QUESTION_HASH}-full.png"
@@ -130,7 +134,7 @@ while true; do
   		fi
   	done
   	if [ "${FOUND}" != "Ok" ]; then
-  		echo "Not found (lost somewhere?). Exiting..."
+  		log "Not found (lost somewhere?). Exiting..."
 		if [ "${EMULATED_DEVICE}" = "true" ]; then
 			kill -9 $EMULATOR_PID
 		fi
@@ -145,11 +149,9 @@ while true; do
   	sleep 1.15
   fi
   
-  echo "Coordinate: ${COORD}"
+  log "Coordinate: ${COORD}"
   DATE=`date '+%Y-%m-%d %H:%M:%S'`
-  echo ""
-  echo "-- $DATE --------------------------------------------"
-  echo ""
+  log "-----------------------------------------------------"
 
 done
 
