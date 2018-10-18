@@ -4,10 +4,17 @@
 #while true; do ./autocoach.sh 7EX0217A30000909; done
 
 #load parameters
-. emu-Nexus5-game3.cfg
+. emu-Nexus5-01-game3.cfg
 echo "DEVICE_RESOLUTION=$DEVICE_RESOLUTION"
 
-function resetApp {
+	function resetApp {
+	
+	if [ "${EMULATED_DEVICE}" = "true" ]; then
+		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -port $EMULATOR_PORT &
+		EMULATOR_PID=$!
+		echo "Waiting for the emulator to start..."
+		sleep 15
+	fi
 
 	echo "Restarting the application..."
 	#chiudo app
@@ -49,8 +56,12 @@ if [ "$1" != "" ]; then
         echo "Parametro: $1"
 		DEVICE_OPTS="-s $1"
 else
+	if [ "${EMULATED_DEVICE}" = "true" ]; then
+		DEVICE_OPTS="-s emulator-${EMULATOR_PORT}"
+	else
         echo "Nessun parametro"
 		DEVICE_OPTS=""
+	fi
 fi
 echo "DEVICE_OPTS=$DEVICE_OPTS"
 
@@ -104,6 +115,7 @@ while true; do
   	
   	#cerco il box verde
   	#TODO: alla fine il verde dura di piu
+	FOUND="KO"
   	for Y in ${PIXEL_CORNER_ANSWER_1_Y} ${PIXEL_CORNER_ANSWER_2_Y} ${PIXEL_CORNER_ANSWER_3_Y} ${PIXEL_CORNER_ANSWER_4_Y}; do 
   		echo "cerco il verde alla coordinata: $Y"
   		# uso una domanda qualsiasi come coordinata x tanto sono tutte uguali
@@ -119,6 +131,9 @@ while true; do
   	done
   	if [ "${FOUND}" != "Ok" ]; then
   		echo "Not found (lost somewhere?). Exiting..."
+		if [ "${EMULATED_DEVICE}" = "true" ]; then
+			kill -9 $EMULATOR_PID
+		fi
   		exit 1
   	fi
   	
@@ -138,6 +153,5 @@ while true; do
 
 done
 
-echo "exiting..."
 #adb ${DEVICE_OPTS} shell svc power stayon false
 
