@@ -14,7 +14,7 @@ function log {
 function resetApp {
 	
 	if [ "${EMULATED_DEVICE}" = "true" ]; then
-		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -port $EMULATOR_PORT &
+		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -no-window -port $EMULATOR_PORT &
 		EMULATOR_PID=$!
 		log "Waiting for the emulator to start..."
 		sleep 15
@@ -138,6 +138,7 @@ while true; do
 		if [ "${EMULATED_DEVICE}" = "true" ]; then
 			kill -9 $EMULATOR_PID
 		fi
+		mv screenshot.png "`date '+%Y-%m-%d_%H.%M.%S'`-crashed-screenshot.png"
   		exit 1
   	fi
   	
@@ -150,7 +151,6 @@ while true; do
   fi
   
   log "Coordinate: ${COORD}"
-  DATE=`date '+%Y-%m-%d %H:%M:%S'`
   log "-----------------------------------------------------"
 
 done
