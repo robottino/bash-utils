@@ -7,11 +7,6 @@
 . emu-Nexus5-game3.cfg
 echo "DEVICE_RESOLUTION=$DEVICE_RESOLUTION"
 
-#CROP_OPTIONS="825x393+234+327"
-#CROP_OPTIONS="120x120+567+471"
-#CROP_OPTIONS="50x200+620+470"
-#CROP_OPTIONS="25x200+620+470"
-
 function resetApp {
 
 	echo "Restarting the application..."
@@ -63,28 +58,27 @@ resetApp
 
 while true; do
 
-  #adb ${DEVICE_OPTS} shell "screencap -p > /sdcard/screenshot.png" && adb ${DEVICE_OPTS} pull /sdcard/screenshot.png screenshot.png && convert screenshot.png -crop "${CROP_OPTIONS}" question.png
   adb ${DEVICE_OPTS} exec-out screencap -p > screenshot.png && convert screenshot.png -crop "${CROP_OPTIONS}" question.png
   
   #150,1800 --> se è blu è finito il gioco
-  TEST=$(convert screenshot.png -format '%[pixel:p{'${PIXEL_TEST_FINE_GIOCO}'}]' info:-)
+  TEST=$(convert screenshot.png -format '%[pixel:p{'${TEST_PIXEL_END_GAME}'}]' info:-)
   echo $TEST
-  if [ "${TEST}" = "${PIXEL_TEST_FINE_GIOCO_EXPECTED_VALUE}" ]; then
+  if [ "${TEST}" = "${TEST_PIXEL_END_GAME_EXPECTED_VALUE}" ]; then
   	echo "fine gioco"
   	adb ${DEVICE_OPTS} shell input tap ${TAP_FINE_DUELLO_CONTINUA}
   	sleep 3
+    
   	adb ${DEVICE_OPTS} shell input tap ${TAP_FINE_DUELLO_MESSAGGIO_CONTINUA}
   	sleep 4
   
   	#avversario casuale
   	adb ${DEVICE_OPTS} shell input tap ${TAP_AVVERSARIO_CASUALE}
   	sleep 5
-  	#si
+
   	adb ${DEVICE_OPTS} shell input tap ${TAP_INIZIA_SFIDA_SI}
   	sleep 4.3
-  	#adb ${DEVICE_OPTS} shell "screencap -p > /sdcard/screenshot.png" && adb ${DEVICE_OPTS} pull /sdcard/screenshot.png screenshot.png && convert screenshot.png -crop "${CROP_OPTIONS}" question.png
+
   	adb ${DEVICE_OPTS} exec-out screencap -p > screenshot.png && convert screenshot.png -crop "${CROP_OPTIONS}" question.png
-  	#exit 1
   fi
   
   COORD="none"
