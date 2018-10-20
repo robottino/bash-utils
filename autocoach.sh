@@ -4,8 +4,27 @@
 #while true; do ./autocoach.sh 7EX0217A30000909; done
 
 #load parameters
-. emu-Nexus5-01-game3.cfg
+. emu-Nexus5-01-game2.cfg
 echo "DEVICE_RESOLUTION=$DEVICE_RESOLUTION"
+
+function exec_timeout()
+# $1 = min timeout milliseconds
+# $2... = command + arguments
+{
+    START=$(( $(date +%s%N) / 1000000 ))
+    TIMEOUT=$1
+    DELTA=0
+    shift;
+
+    #execute command    
+    $@
+
+    while [ $DELTA -le $TIMEOUT ]; do 
+      END=$(( $(date +%s%N) / 1000000 ))
+      DELTA=$(( $END - $START ))
+    done
+    
+}
 
 function log {
 	echo "`date '+%Y-%m-%d %H:%M:%S'` $1"
@@ -14,16 +33,17 @@ function log {
 function resetApp {
 	
 	if [ "${EMULATED_DEVICE}" = "true" ]; then
-		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -no-window -port $EMULATOR_PORT &
+#		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -no-window -port $EMULATOR_PORT &
+		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -port $EMULATOR_PORT &
 		EMULATOR_PID=$!
 		log "Waiting for the emulator to start..."
-		sleep 15
+		sleep 20
 	fi
 
 	log "Restarting the application..."
 	#chiudo app
 	adb ${DEVICE_OPTS} shell am force-stop com.axa.pocketcoach.prod
-	sleep 10
+	sleep 15
 
 	#avvio
 	adb ${DEVICE_OPTS} shell am start com.axa.pocketcoach.prod/com.teachonmars.lom.SplashActivity
