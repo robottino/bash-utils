@@ -33,45 +33,55 @@ function log {
 function resetApp {
 	
 	if [ "${EMULATED_DEVICE}" = "true" ]; then
-#		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -no-window -port $EMULATOR_PORT &
-		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -port $EMULATOR_PORT &
+		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -no-window -port $EMULATOR_PORT &
+#		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -port $EMULATOR_PORT &
 		EMULATOR_PID=$!
 		log "Waiting for the emulator to start..."
 		sleep 20
 	fi
 
 	log "Restarting the application..."
-	#chiudo app
-	adb ${DEVICE_OPTS} shell am force-stop com.axa.pocketcoach.prod
-	sleep 15
+	log "chiudo app"
+	exec_timeout 15000 adb ${DEVICE_OPTS} shell am force-stop com.axa.pocketcoach.prod
+	#sleep 15
 
-	#avvio
-	adb ${DEVICE_OPTS} shell am start com.axa.pocketcoach.prod/com.teachonmars.lom.SplashActivity
-	sleep 8
+	log "avvio"
+	exec_timeout 16000 adb ${DEVICE_OPTS} shell am start com.axa.pocketcoach.prod/com.teachonmars.lom.SplashActivity
+	#sleep 8
 
-	#swipe per trovare corso
-	adb ${DEVICE_OPTS} shell input swipe ${SWIPE_CORSO}
-	sleep 3
+	log "swipe per trovare corso"
+	#adb ${DEVICE_OPTS} exec-out screencap -p > before-swipe.png
+	exec_timeout 4000 adb ${DEVICE_OPTS} shell input swipe ${SWIPE_CORSO}
+	#adb ${DEVICE_OPTS} exec-out screencap -p > after-swipe.png
+	#sleep 3
 
-	#tap corso
-	adb ${DEVICE_OPTS} shell input tap ${TAP_CORSO}
-	sleep 2
+	log "tap corso"
+	exec_timeout 2000 adb ${DEVICE_OPTS} shell input tap ${TAP_CORSO}
+	#sleep 2
 
-	#swipe sfida
-	adb ${DEVICE_OPTS} shell input swipe ${SWIPE_SFIDA}
-	sleep 3
+	log "swipe sfida"
+	#adb ${DEVICE_OPTS} exec-out screencap -p > before-swipe.png
+	exec_timeout 4000 adb ${DEVICE_OPTS} shell input swipe ${SWIPE_SFIDA}
+	#adb ${DEVICE_OPTS} exec-out screencap -p > after-swipe.png
+	#sleep 3
 
-	#tap sfida
-	adb ${DEVICE_OPTS} shell input tap ${TAP_SFIDA}
-	sleep 2
+	log "tap sfida"
+	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
+	exec_timeout 3000 adb ${DEVICE_OPTS} shell input tap ${TAP_SFIDA}
+	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
+	#sleep 2
 
-	#tap avversario casuale
-	adb ${DEVICE_OPTS} shell input tap ${TAP_AVVERSARIO_CASUALE}
-	sleep 3
+	log "tap avversario casuale"
+	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
+	exec_timeout 5000 adb ${DEVICE_OPTS} shell input tap ${TAP_AVVERSARIO_CASUALE}
+	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
+	#sleep 3
 
-	#tap si
-	adb ${DEVICE_OPTS} shell input tap ${TAP_INIZIA_SFIDA_SI}
-	sleep 4.3
+	log "tap si"
+	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
+	exec_timeout 4300 adb ${DEVICE_OPTS} shell input tap ${TAP_INIZIA_SFIDA_SI}
+	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
+	#sleep 4.3
 }
 
 ################ BEGIN
@@ -100,18 +110,18 @@ while true; do
   log $TEST
   if [ "${TEST}" = "${TEST_PIXEL_END_GAME_EXPECTED_VALUE}" ]; then
   	log "fine gioco"
-  	adb ${DEVICE_OPTS} shell input tap ${TAP_FINE_DUELLO_CONTINUA}
-  	sleep 3
+  	exec_timeout 3000 adb ${DEVICE_OPTS} shell input tap ${TAP_FINE_DUELLO_CONTINUA}
+  	#sleep 3
     
-  	adb ${DEVICE_OPTS} shell input tap ${TAP_FINE_DUELLO_MESSAGGIO_CONTINUA}
-  	sleep 4
+  	exec_timeout 4000 adb ${DEVICE_OPTS} shell input tap ${TAP_FINE_DUELLO_MESSAGGIO_CONTINUA}
+  	#sleep 4
   
   	#avversario casuale
-  	adb ${DEVICE_OPTS} shell input tap ${TAP_AVVERSARIO_CASUALE}
-  	sleep 5
+  	exec_timeout 5000 adb ${DEVICE_OPTS} shell input tap ${TAP_AVVERSARIO_CASUALE}
+  	#sleep 5
 
-  	adb ${DEVICE_OPTS} shell input tap ${TAP_INIZIA_SFIDA_SI}
-  	sleep 4.3
+  	exec_timeout 4500 adb ${DEVICE_OPTS} shell input tap ${TAP_INIZIA_SFIDA_SI}
+  	#sleep 4.3
 
   	adb ${DEVICE_OPTS} exec-out screencap -p > screenshot.png && convert screenshot.png -crop "${CROP_OPTIONS}" question.png
   fi
@@ -130,12 +140,13 @@ while true; do
   	log "Domanda nuova, clicco la prima risposta..."
   	Y=$(echo ${PIXEL_CORNER_ANSWER_1} | cut -d\, -f2)
   	log "adb ${DEVICE_OPTS} shell input tap ${X_CENTER_ANSWER} ${Y}"
-  	adb ${DEVICE_OPTS} shell input tap ${X_CENTER_ANSWER} ${Y}
   	
-  	sleep 0.3
-  	adb ${DEVICE_OPTS} exec-out screencap -p > try.png
+  	exec_timeout 300 adb ${DEVICE_OPTS} shell input tap ${X_CENTER_ANSWER} ${Y}
+  	#sleep 0.3
+
+  	exec_timeout 1500 adb ${DEVICE_OPTS} exec-out screencap -p > try.png
   	#adb ${DEVICE_OPTS} shell "screencap -p > /sdcard/screenshot.png" && adb ${DEVICE_OPTS} pull /sdcard/screenshot.png try.png
-  	sleep 1.5
+  	#sleep 1.5
   	
   	#cerco il box verde
   	#TODO: alla fine il verde dura di piu
@@ -156,7 +167,7 @@ while true; do
   	if [ "${FOUND}" != "Ok" ]; then
   		log "Not found (lost somewhere?). Exiting..."
 		if [ "${EMULATED_DEVICE}" = "true" ]; then
-			kill -9 $EMULATOR_PID
+			kill $EMULATOR_PID
 		fi
 		mv screenshot.png "`date '+%Y-%m-%d_%H.%M.%S'`-crashed-screenshot.png"
   		exit 1
@@ -166,8 +177,9 @@ while true; do
   	#ko: srgba(219,16,11,1)
   else
   	#conosco la domanda
-  	adb ${DEVICE_OPTS} shell input tap ${COORD}
-  	sleep 1.15
+  	log "tap sulla risposta"
+  	exec_timeout 1800 adb ${DEVICE_OPTS} shell input tap ${COORD}
+  	#sleep 1.15
   fi
   
   log "Coordinate: ${COORD}"
