@@ -4,7 +4,7 @@
 #while true; do ./autocoach.sh 7EX0217A30000909; done
 
 #load parameters
-. emu-Nexus5-01-game2.cfg
+. emu-Nexus5-01-game4.cfg
 echo "DEVICE_RESOLUTION=$DEVICE_RESOLUTION"
 
 function exec_timeout()
@@ -12,6 +12,8 @@ function exec_timeout()
 # $2... = command + arguments
 {
     START=$(( $(date +%s%N) / 1000000 ))
+	#adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
+
     TIMEOUT=$1
     DELTA=0
     shift;
@@ -23,6 +25,7 @@ function exec_timeout()
       END=$(( $(date +%s%N) / 1000000 ))
       DELTA=$(( $END - $START ))
     done
+	#adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
     
 }
 
@@ -33,55 +36,23 @@ function log {
 function resetApp {
 	
 	if [ "${EMULATED_DEVICE}" = "true" ]; then
-		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -no-window -port $EMULATOR_PORT &
-#		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -port $EMULATOR_PORT &
+#		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -no-window -port $EMULATOR_PORT &
+		~/Android/Sdk/emulator/emulator @${DEVICE_NAME} -no-audio -no-snapshot -port $EMULATOR_PORT &
 		EMULATOR_PID=$!
 		log "Waiting for the emulator to start..."
 		sleep 20
+	else
+		log "Closing the application..."
+		exec_timeout 15000 adb ${DEVICE_OPTS} shell am force-stop com.axa.pocketcoach.prod
+		#sleep 15
 	fi
 
-	log "Restarting the application..."
-	log "chiudo app"
-	exec_timeout 15000 adb ${DEVICE_OPTS} shell am force-stop com.axa.pocketcoach.prod
-	#sleep 15
-
-	log "avvio"
-	exec_timeout 16000 adb ${DEVICE_OPTS} shell am start com.axa.pocketcoach.prod/com.teachonmars.lom.SplashActivity
+	log "Starting the application..."
+	exec_timeout 8000 adb ${DEVICE_OPTS} shell am start com.axa.pocketcoach.prod/com.teachonmars.lom.SplashActivity
 	#sleep 8
 
-	log "swipe per trovare corso"
-	#adb ${DEVICE_OPTS} exec-out screencap -p > before-swipe.png
-	exec_timeout 4000 adb ${DEVICE_OPTS} shell input swipe ${SWIPE_CORSO}
-	#adb ${DEVICE_OPTS} exec-out screencap -p > after-swipe.png
-	#sleep 3
+	loadGame
 
-	log "tap corso"
-	exec_timeout 2000 adb ${DEVICE_OPTS} shell input tap ${TAP_CORSO}
-	#sleep 2
-
-	log "swipe sfida"
-	#adb ${DEVICE_OPTS} exec-out screencap -p > before-swipe.png
-	exec_timeout 4000 adb ${DEVICE_OPTS} shell input swipe ${SWIPE_SFIDA}
-	#adb ${DEVICE_OPTS} exec-out screencap -p > after-swipe.png
-	#sleep 3
-
-	log "tap sfida"
-	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
-	exec_timeout 3000 adb ${DEVICE_OPTS} shell input tap ${TAP_SFIDA}
-	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
-	#sleep 2
-
-	log "tap avversario casuale"
-	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
-	exec_timeout 5000 adb ${DEVICE_OPTS} shell input tap ${TAP_AVVERSARIO_CASUALE}
-	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
-	#sleep 3
-
-	log "tap si"
-	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
-	exec_timeout 4300 adb ${DEVICE_OPTS} shell input tap ${TAP_INIZIA_SFIDA_SI}
-	adb ${DEVICE_OPTS} exec-out screencap -p > "`date '+%Y-%m-%d_%H.%M.%S'`-debug-screenshot.png"
-	#sleep 4.3
 }
 
 ################ BEGIN
@@ -141,7 +112,7 @@ while true; do
   	Y=$(echo ${PIXEL_CORNER_ANSWER_1} | cut -d\, -f2)
   	log "adb ${DEVICE_OPTS} shell input tap ${X_CENTER_ANSWER} ${Y}"
   	
-  	exec_timeout 300 adb ${DEVICE_OPTS} shell input tap ${X_CENTER_ANSWER} ${Y}
+  	exec_timeout 500 adb ${DEVICE_OPTS} shell input tap ${X_CENTER_ANSWER} ${Y}
   	#sleep 0.3
 
   	exec_timeout 1500 adb ${DEVICE_OPTS} exec-out screencap -p > try.png
@@ -171,6 +142,8 @@ while true; do
 		fi
 		mv screenshot.png "`date '+%Y-%m-%d_%H.%M.%S'`-crashed-screenshot.png"
   		exit 1
+  	else
+		continue
   	fi
   	
   	#ok: srgba(77,206,11,1) srgba(73,210,0,1)
