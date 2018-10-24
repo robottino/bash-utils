@@ -6,7 +6,8 @@
 #load parameters
 #. emu-Nexus5-01-game4.cfg
 #. p10-game4.cfg
-. p8lite-game4.cfg
+#. p8lite-game4.cfg
+. gflex2-game4.cfg
 echo "DEVICE_RESOLUTION=$DEVICE_RESOLUTION"
 
 function exec_timeout()
@@ -111,7 +112,7 @@ while true; do
   	#TODO: alla fine il verde dura di piu
 	FOUND="KO"
   	for Y in ${PIXEL_CORNER_ANSWER_1_Y} ${PIXEL_CORNER_ANSWER_2_Y} ${PIXEL_CORNER_ANSWER_3_Y} ${PIXEL_CORNER_ANSWER_4_Y}; do 
-  		log "cerco il verde alla coordinata: $Y"
+  		log "cerco il verde alla coordinata: ${PIXEL_CORNER_ANSWER_1_X},${Y}"
   		# uso una domanda qualsiasi come coordinata x tanto sono tutte uguali
   		TEST=$(convert try.png -format '%[pixel:p{'${PIXEL_CORNER_ANSWER_1_X}','${Y}'}]' info:-)
   		if [ ${TEST} = "${CORRECT_ANSWER_COLOR}" ]; then
