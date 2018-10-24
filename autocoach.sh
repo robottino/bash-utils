@@ -4,8 +4,9 @@
 #while true; do ./autocoach.sh 7EX0217A30000909; done
 
 #load parameters
-. emu-Nexus5-01-game4.cfg
+#. emu-Nexus5-01-game4.cfg
 #. p10-game4.cfg
+. p8lite-game4.cfg
 echo "DEVICE_RESOLUTION=$DEVICE_RESOLUTION"
 
 function exec_timeout()
