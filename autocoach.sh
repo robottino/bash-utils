@@ -5,6 +5,7 @@
 
 #load parameters
 . emu-Nexus5-01-game4.cfg
+#. p10-game4.cfg
 echo "DEVICE_RESOLUTION=$DEVICE_RESOLUTION"
 
 function exec_timeout()
@@ -57,17 +58,13 @@ function resetApp {
 
 ################ BEGIN
 
-if [ "$1" != "" ]; then
-        log "Parametro: $1"
-		DEVICE_OPTS="-s $1"
+if [ "${EMULATED_DEVICE}" = "true" ]; then
+	DEVICE_OPTS="-s emulator-${EMULATOR_PORT}"
 else
-	if [ "${EMULATED_DEVICE}" = "true" ]; then
-		DEVICE_OPTS="-s emulator-${EMULATOR_PORT}"
-	else
-        log "Nessun parametro"
-		DEVICE_OPTS=""
-	fi
+	log "Nessun parametro"
+	DEVICE_OPTS="-s ${DEVICE_ID}"
 fi
+
 log "DEVICE_OPTS=$DEVICE_OPTS"
 
 resetApp
@@ -81,18 +78,8 @@ while true; do
   log $TEST
   if [ "${TEST}" = "${TEST_PIXEL_END_GAME_EXPECTED_VALUE}" ]; then
   	log "fine gioco"
-  	exec_timeout 3000 adb ${DEVICE_OPTS} shell input tap ${TAP_FINE_DUELLO_CONTINUA}
-  	#sleep 3
-    
-  	exec_timeout 4000 adb ${DEVICE_OPTS} shell input tap ${TAP_FINE_DUELLO_MESSAGGIO_CONTINUA}
-  	#sleep 4
-  
-  	#avversario casuale
-  	exec_timeout 5000 adb ${DEVICE_OPTS} shell input tap ${TAP_AVVERSARIO_CASUALE}
-  	#sleep 5
-
-  	exec_timeout 4500 adb ${DEVICE_OPTS} shell input tap ${TAP_INIZIA_SFIDA_SI}
-  	#sleep 4.3
+  	
+  	nextGame
 
   	adb ${DEVICE_OPTS} exec-out screencap -p > screenshot.png && convert screenshot.png -crop "${CROP_OPTIONS}" question.png
   fi
